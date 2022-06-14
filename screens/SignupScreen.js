@@ -1,131 +1,124 @@
-import React, {useContext, useState} from 'react';
-import {View, Text, TouchableOpacity, Platform, StyleSheet} from 'react-native';
-import FormInput from '../components/FormInput';
-import FormButton from '../components/FormButton';
-import SocialButton from '../components/SocialButton';
-import {AuthContext} from '../navigation/AuthProvider';
+// components/signup.js
+import React, { Component } from 'react';
+import { StyleSheet, Text, View, TextInput, Button, Alert, ActivityIndicator } from 'react-native';
+import firebase from '../database/firebase';
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
-const SignupScreen = ({navigation}) => {
-    const [email, setEmail] = useState();
-    const [password, setPassword] = useState();
-    const [confirmPassword, setConfirmPassword] = useState();
 
-    const {register} = useContext(AuthContext);
+export default class SignUpScreen extends Component {
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.text}>Create an account</Text>
+    constructor() {
+        super();
+        this.state = {
+            displayName: '',
+            email: '',
+            password: '',
+            isLoading: false
+        }
+    }
+    updateInputVal = (val, prop) => {
+        const state = this.state;
+        state[prop] = val;
+        this.setState(state);
+    }
+    registerUser = () => {
+        if(this.state.email === '' && this.state.password === '') {
+            Alert.alert('Enter details to signup!')
+        } else {
 
-            <FormInput
-                labelValue={email}
-                onChangeText={(userEmail) => setEmail(userEmail)}
-                placeholderText="Email"
-                iconType="user"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-            />
+            const auth = getAuth();
 
-            <FormInput
-                labelValue={password}
-                onChangeText={(userPassword) => setPassword(userPassword)}
-                placeholderText="Password"
-                iconType="lock"
-                secureTextEntry={true}
-            />
-
-            <FormInput
-                labelValue={confirmPassword}
-                onChangeText={(userPassword) => setConfirmPassword(userPassword)}
-                placeholderText="Confirm Password"
-                iconType="lock"
-                secureTextEntry={true}
-            />
-
-            <FormButton
-                buttonTitle="Sign Up"
-                onPress={() => register(email, password)}
-            />
-
-            <View style={styles.textPrivate}>
-                <Text style={styles.color_textPrivate}>
-                    By registering, you confirm that you accept our{' '}
-                </Text>
-                <TouchableOpacity onPress={() => alert('Terms Clicked!')}>
-                    <Text style={[styles.color_textPrivate, {color: '#e88832'}]}>
-                        Terms of service
-                    </Text>
-                </TouchableOpacity>
-                <Text style={styles.color_textPrivate}> and </Text>
-                <Text style={[styles.color_textPrivate, {color: '#e88832'}]}>
-                    Privacy Policy
+            this.setState({
+                isLoading: true,
+            })
+            createUserWithEmailAndPassword(auth, this.state.email, this.state.password)
+                .then((res) => {
+                    console.log('User registered successfully!')
+                    this.setState({
+                        isLoading: false,
+                        displayName: '',
+                        email: '',
+                        password: ''
+                    });
+                    this.props.navigation.navigate('Login')
+                })
+                .catch(error => this.setState({ errorMessage: error.message }))
+        }
+    }
+    render() {
+        if(this.state.isLoading){
+            return(
+                <View style={styles.preloader}>
+                    <ActivityIndicator size="large" color="#9E9E9E"/>
+                </View>
+            )
+        }
+        return (
+            <View style={styles.container}>
+                <TextInput
+                    style={styles.inputStyle}
+                    placeholder="Name"
+                    value={this.state.displayName}
+                    onChangeText={(val) => this.updateInputVal(val, 'displayName')}
+                />
+                <TextInput
+                    style={styles.inputStyle}
+                    placeholder="Email"
+                    value={this.state.email}
+                    onChangeText={(val) => this.updateInputVal(val, 'email')}
+                />
+                <TextInput
+                    style={styles.inputStyle}
+                    placeholder="Password"
+                    value={this.state.password}
+                    onChangeText={(val) => this.updateInputVal(val, 'password')}
+                    maxLength={15}
+                    secureTextEntry={true}
+                />
+                <Button
+                    color="#3740FE"
+                    title="Signup"
+                    onPress={() => this.registerUser()}
+                />
+                <Text
+                    style={styles.loginText}
+                    onPress={() => this.props.navigation.navigate('Login')}>
+                    Already Registered? Click here to login
                 </Text>
             </View>
-
-            {Platform.OS === 'android' ? (
-                <View>
-                    <SocialButton
-                        buttonTitle="Sign Up with Facebook"
-                        btnType="facebook"
-                        color="#4867aa"
-                        backgroundColor="#e6eaf4"
-                        onPress={() => {}}
-                    />
-
-                    <SocialButton
-                        buttonTitle="Sign Up with Google"
-                        btnType="google"
-                        color="#de4d41"
-                        backgroundColor="#f5e7ea"
-                        onPress={() => {}}
-                    />
-                </View>
-            ) : null}
-
-            <TouchableOpacity
-                style={styles.navButton}
-                onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.navButtonText}>Have an account? Sign In</Text>
-            </TouchableOpacity>
-        </View>
-    );
-};
-
-export default SignupScreen;
-
+        );
+    }
+}
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#f9fafd',
         flex: 1,
-        justifyContent: 'center',
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: 35,
+        backgroundColor: '#fff'
+    },
+    inputStyle: {
+        width: '100%',
+        marginBottom: 15,
+        paddingBottom: 15,
+        alignSelf: "center",
+        borderColor: "#ccc",
+        borderBottomWidth: 1
+    },
+    loginText: {
+        color: '#3740FE',
+        marginTop: 25,
+        textAlign: 'center'
+    },
+    preloader: {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        position: 'absolute',
         alignItems: 'center',
-        padding: 20,
-    },
-    text: {
-        fontFamily: 'Kufam-SemiBoldItalic',
-        fontSize: 28,
-        marginBottom: 10,
-        color: '#051d5f',
-    },
-    navButton: {
-        marginTop: 15,
-    },
-    navButtonText: {
-        fontSize: 18,
-        fontWeight: '500',
-        color: '#2e64e5',
-        fontFamily: 'Lato-Regular',
-    },
-    textPrivate: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        marginVertical: 35,
         justifyContent: 'center',
-    },
-    color_textPrivate: {
-        fontSize: 13,
-        fontWeight: '400',
-        fontFamily: 'Lato-Regular',
-        color: 'grey',
-    },
+        backgroundColor: '#fff'
+    }
 });

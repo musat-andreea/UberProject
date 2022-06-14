@@ -1,120 +1,116 @@
-import React, {useContext, useState} from 'react';
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    Image,
-    Platform,
-    StyleSheet,
-    ScrollView
-} from 'react-native';
-import FormInput from '../components/FormInput';
-import FormButton from '../components/FormButton';
-import SocialButton from '../components/SocialButton';
-import {AuthContext} from '../navigation/AuthProvider';
+// components/login.js
+import React, { Component } from 'react';
+import { StyleSheet, Text, View, TextInput, Button, Alert, ActivityIndicator } from 'react-native';
+import firebase from '../database/firebase';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
-const LoginScreen = ({navigation}) => {
-    const [email, setEmail] = useState();
-    const [password, setPassword] = useState();
 
-    const {login, googleLogin, fbLogin} = useContext(AuthContext);
+export default class LoginScreen extends Component {
 
-    return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <Image
-                source={require('../assets/images/coffee.png')}
-                style={styles.logo}
-            />
-            <Text style={styles.text}>RN Social App</Text>
+    constructor() {
+        super();
+        this.state = {
+            email: '',
+            password: '',
+            isLoading: false
+        }
+    }
+    updateInputVal = (val, prop) => {
+        const state = this.state;
+        state[prop] = val;
+        this.setState(state);
+    }
+    userLogin = () => {
+        if(this.state.email === '' && this.state.password === '') {
+            Alert.alert('Enter details to signin!')
+        } else {
+            const auth = getAuth();
 
-            <FormInput
-                labelValue={email}
-                onChangeText={(userEmail) => setEmail(userEmail)}
-                placeholderText="Email"
-                iconType="user"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-            />
-
-            <FormInput
-                labelValue={password}
-                onChangeText={(userPassword) => setPassword(userPassword)}
-                placeholderText="Password"
-                iconType="lock"
-                secureTextEntry={true}
-            />
-
-            <FormButton
-                buttonTitle="Sign In"
-                onPress={() => login(email, password)}
-            />
-
-            <TouchableOpacity style={styles.forgotButton} onPress={() => {}}>
-                <Text style={styles.navButtonText}>Forgot Password?</Text>
-            </TouchableOpacity>
-
-            {(
-                <View>
-                    <SocialButton
-                        buttonTitle="Sign In with Facebook"
-                        btnType="facebook"
-                        color="#4867aa"
-                        backgroundColor="#e6eaf4"
-                        onPress={() => fbLogin()}
-                    />
-
-                    <SocialButton
-                        buttonTitle="Sign In with Google"
-                        btnType="google"
-                        color="#de4d41"
-                        backgroundColor="#f5e7ea"
-                        onPress={() => googleLogin()}
-                    />
+            this.setState({
+                isLoading: true,
+            })
+            signInWithEmailAndPassword(auth, this.state.email, this.state.password)
+                .then((res) => {
+                    console.log(res)
+                    console.log('User logged-in successfully!')
+                    this.setState({
+                        isLoading: false,
+                        email: '',
+                        password: ''
+                    })
+                    this.props.navigation.navigate('Home')
+                })
+                .catch(error => this.setState({ errorMessage: error.message }))
+        }
+    }
+    render() {
+        if(this.state.isLoading){
+            return(
+                <View style={styles.preloader}>
+                    <ActivityIndicator size="large" color="#9E9E9E"/>
                 </View>
-            ) }
-
-            <TouchableOpacity
-                style={styles.forgotButton}
-                onPress={() => navigation.navigate('Signup')}>
-                <Text style={styles.navButtonText}>
-                    Don't have an acount? Create here
+            )
+        }
+        return (
+            <View style={styles.container}>
+                <TextInput
+                    style={styles.inputStyle}
+                    placeholder="Email"
+                    value={this.state.email}
+                    onChangeText={(val) => this.updateInputVal(val, 'email')}
+                />
+                <TextInput
+                    style={styles.inputStyle}
+                    placeholder="Password"
+                    value={this.state.password}
+                    onChangeText={(val) => this.updateInputVal(val, 'password')}
+                    maxLength={15}
+                    secureTextEntry={true}
+                />
+                <Button
+                    color="#3740FE"
+                    title="Signin"
+                    onPress={() => this.userLogin()}
+                />
+                <Text
+                    style={styles.loginText}
+                    onPress={() => this.props.navigation.navigate('Signup')}>
+                    Don't have account? Click here to signup
                 </Text>
-            </TouchableOpacity>
-        </ScrollView>
-    );
-};
-
-export default LoginScreen;
-
+            </View>
+        );
+    }
+}
 const styles = StyleSheet.create({
     container: {
-        justifyContent: 'center',
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: 35,
+        backgroundColor: '#fff'
+    },
+    inputStyle: {
+        width: '100%',
+        marginBottom: 15,
+        paddingBottom: 15,
+        alignSelf: "center",
+        borderColor: "#ccc",
+        borderBottomWidth: 1
+    },
+    loginText: {
+        color: '#3740FE',
+        marginTop: 25,
+        textAlign: 'center'
+    },
+    preloader: {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        position: 'absolute',
         alignItems: 'center',
-        padding: 20,
-        paddingTop: 50
-    },
-    logo: {
-        height: 150,
-        width: 150,
-        resizeMode: 'cover',
-    },
-    text: {
-        fontFamily: 'Kufam-SemiBoldItalic',
-        fontSize: 28,
-        marginBottom: 10,
-        color: '#051d5f',
-    },
-    navButton: {
-        marginTop: 15,
-    },
-    forgotButton: {
-        marginVertical: 35,
-    },
-    navButtonText: {
-        fontSize: 18,
-        fontWeight: '500',
-        color: '#2e64e5',
-        fontFamily: 'Lato-Regular',
-    },
+        justifyContent: 'center',
+        backgroundColor: '#fff'
+    }
 });

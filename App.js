@@ -13,6 +13,7 @@ import LoginScreen from "./screens/LoginScreen";
 import {AsyncStorage} from "@react-native-community/async-storage";
 import AuthStack from "./navigation/AuthStack";
 import AddRestaurant from "./components/AddRestaurant";
+import SignUpScreen from "./screens/SignupScreen";
 
 YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated', 'Module RCTImageLoader']);
 const AppStack = createStackNavigator();
@@ -30,6 +31,8 @@ export default function App() {
                 <AppStack.Navigator
                     headerMode="none"
                 >
+                    <AppStack.Screen name="SignUp" component={SignUpScreen}/>
+                    <AppStack.Screen name="Login" component={LoginScreen}/>
                     <AppStack.Screen name="Home" component={Home}/>
                     <AppStack.Screen name="AddRestaurant" component={AddRestaurant}/>
                     {/*<AppStack.Screen name="Login" component={LoginScreen}/>*/}

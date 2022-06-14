@@ -66,7 +66,7 @@ export default function RestaurantItems({navigation, ...props}) {
 
     useEffect(() => {
         setRestaurantData([]);
-        if (props.filter == 0) {
+        if (!props.filter) {
             axios.get('http://localhost:5000/')
                 .then((response) => {
                     setRestaurantData(response.data);

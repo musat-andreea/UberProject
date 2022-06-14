@@ -1,6 +1,7 @@
 
-// Your web app's Firebase configuration
 import * as firebase from "firebase/app";
+// Add the Firebase products that you want to use
+import "firebase/auth";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAx8_fKZaDZPAE2aUk0k67WJK9q1x1gpGk",

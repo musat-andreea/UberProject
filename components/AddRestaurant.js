@@ -47,6 +47,7 @@ export default function AddRestaurant({navigation, ...props}) {
             opening: opening,
             close: close,
             image: image,
+            locationId: 1,
         };
 
        axios.post('http://localhost:5000', body)

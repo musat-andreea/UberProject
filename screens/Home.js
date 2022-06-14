@@ -122,7 +122,8 @@ export default function Home({navigation}) {
                 onScroll={scrollHandler}
                 scrollEventThrottle={16}>
 
-                <RestaurantItems manage={true}/>
+                <Categories filter={filter} changeFilter={handleFilterChange}/>
+                <RestaurantItems manage={true}  filter={filter}/>
             </Animated.ScrollView>
             }
 
